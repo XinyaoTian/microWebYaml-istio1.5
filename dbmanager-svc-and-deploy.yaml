@@ -81,7 +81,7 @@ spec:
         - containerPort: 9090
         resources:
           limits:
-            cpu: "1"
+            cpu: "0.3"
             memory: 256Mi
           requests:
             cpu: "0.1"
