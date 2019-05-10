@@ -1,4 +1,36 @@
 ---
+#####################################################
+#  microweb-webui-gateway
+#---------------------------------------------------#
+# gateway 的作用是将微服务应用提供的服务
+# 通过与 ingressgateway 从而暴露出来
+# 通常与 VirtualService(配置提供的uri) 配合使用
+#---------------------------------------------------#
+# 自身配置中的 metadata.name 需要与 VirtualService 中
+# 的 spec.gateways 相匹配
+#---------------------------------------------------#
+# 注意: 这个 gateway 只是用于测试的, 实际使用时
+# 只需为整个微服务应用配置一个 gateway 即可
+#####################################################
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  # 这里需要对应相应的 vs
+  name: microweb-webui-gateway
+  namespace: default
+spec:
+  selector:
+    # 流量总入口 - 对应 istio 的总控 ingressgateway 即可
+    istio: ingressgateway # use istio default controller
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
 # 用于流量管理的 VirtualService 需要配合 DestinationRule 才能发挥流量管理的作用，否则 503 或不生效
 # 利用 DestinationRule 对 subsets 进行预配置
 apiVersion: networking.istio.io/v1alpha3
@@ -9,7 +41,7 @@ metadata:
 spec:
   # 注意这里需要对应 svc 的配置信息中的 metadata.name
   host: microweb-webui
-  # subsets 的标签与 svc 对应的 deploy 的 metadata.labels.version 相匹配
+  # subsets 的标签与 svc 对应的 deploy 的 spec.template.metadata.labels.version 相匹配
   subsets:
   - name: v1
     labels:
@@ -18,24 +50,60 @@ spec:
     labels:
       version: v2
 ---
-# 用于配置流量的 VirtualService
+#####################################################
+#  microweb-webui-vs
+#---------------------------------------------------#
+# VirtualService 通常用于 WEB 应用 和 RESTful API 服务,
+# 通常用于指定可访问的 uri 或 uri 的匹配类型
+# 与 gateway 和相应服务的 Service 配合使用
+#---------------------------------------------------#
+# 自身配置中的 spec.gateways 需要与 gateway 中
+# 的 metadata.name 相匹配
+#---------------------------------------------------#
+# 自身配置中的 spec.route.- destination.host 需要与相应
+# Service 的 metadata.name 一致才能正确对应
+# 注意: spec.route.- destination.port.numbers 也要对应
+#---------------------------------------------------#
+# ps: 自身配置中 spec.http.- match.uri 有 2 种基本类型,
+# 第 1 种: exact 用于书写规范的 uri
+# 第 2 种: prefix 则用来书写匹配形uri,
+#         例如 /uid/:number 可写为 prefix: /uid/
+#####################################################
+---
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  name: webui-traffic-ctrl
+  name: microweb-webui-vs
   namespace: default
 spec:
   hosts:
-  - microweb-webui
+  - "*"
+  gateways:
+  # 这里需要对应 gateway
+  - microweb-webui-gateway
+  # 指定 http 规则
   http:
-  - route:
+  - match:
+    - uri:
+        exact: /
+    - uri:
+        exact: /announcement
+    route:
     - destination:
         # 注意这里需要对应 svc 的配置信息中的 metadata.name
-        host: microweb-webui-svc
+        host: microweb-webui
         subset: v1
+        port:
+          # 注意不要忘记配置 Service 的端口
+          number: 80
       weight: 0
     - destination:
-        host: microweb-webui-svc
+        # 注意这里需要对应 svc 的配置信息中的 metadata.name
+        host: microweb-webui
         subset: v2
+        port:
+          # 注意不要忘记配置 Service 的端口
+          number: 80
       weight: 100
 ---
+

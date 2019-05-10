@@ -1,6 +1,18 @@
 # 自研发微服务 MicroApp 的 Istio 部署 yaml
 
-该微服务应用的各项组件和 yaml 均经过 Kubernetes v1.13.1 版本 和 Istio 1.0.6 版本的测试。
+该微服务应用的各项组件和 yaml 均经过 Kubernetes v1.13.1 版本 和 Istio 1.1.5 版本的测试。
+
+## 添加流量管理功能
+
+在启动 webui 组件时, 同时启动如下四个 yaml 文件, 即可实现流量全部转移到 v2 版本
+1. webui-gateway-and-vs.yaml 
+2. webui-svc-and-deploy.yaml
+3. webui-traffic-ctrl.yaml
+
+其中, webui-traffic-ctrl.yaml 文件包含了 webui-gateway-and-vs.yaml 的功能。
+
+webui-traffic-ctrl-by-svc.yaml 是基于 Service 实现的简单流量管理,
+在 Istio 中不推荐使用。
 
 
 ## 研发说明及相关项目
