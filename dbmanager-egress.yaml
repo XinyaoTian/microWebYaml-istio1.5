@@ -12,6 +12,9 @@ metadata:
   namespace: default
 spec:
   hosts:
+  # - 174.137.53.55
+  - postgres # not used
+  addresses:
   - 174.137.53.55
   ports:
   - number: 5432
@@ -23,5 +26,12 @@ spec:
   #- number: 443
     #name: https
     #protocol: HTTPS
-  resolution: DNS
+  # resolution 有两种类型
+  # DNS 用于这里 spec.hosts 的域名解析;
+  # STATIC 用于 spec.addresses 静态 IP
+  # 当使用 STATIC 类型时, spec.hosts 将不再发生作用
+  # resolution: DNS
+  resolution: STATIC
+  endpoints:
+  - address: 174.137.53.55
 ---
