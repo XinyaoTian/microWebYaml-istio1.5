@@ -1,0 +1,30 @@
+---
+######################
+# microweb-webui-svc
+# 通过 svc 配置中的 spec.selector.version
+# 指定访问的版本
+######################
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: microweb-webui
+  namespace: default
+spec:
+  # externalTrafficPolicy: Local
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+    # nodePort: 30080
+  clusterIP: 10.96.0.8
+  selector:
+    # deploy identifier
+    # 与 deploy 的 spec.template.metadata.labels.app 相对应
+    app: microweb-webui
+    # 在此处指定需访问的 deploy 版本
+    version: v2
+    # version: v1
+  # type: NodePort
+  type: ClusterIP
+---

@@ -71,8 +71,8 @@ spec:
         exact: /announcement
     route:
     - destination:
-        # 注意这里需要对应 svc 的配置信息
-        host: microweb-webui-svc
+        # 注意这里需要对应 svc 的配置信息中的 metadata.name
+        host: microweb-webui
         port:
           # 注意不要忘记配置 Service 的端口
           number: 80

@@ -1,0 +1,41 @@
+---
+# 用于流量管理的 VirtualService 需要配合 DestinationRule 才能发挥流量管理的作用，否则 503 或不生效
+# 利用 DestinationRule 对 subsets 进行预配置
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: microweb-webui-destinationrule
+  namespace: default
+spec:
+  # 注意这里需要对应 svc 的配置信息中的 metadata.name
+  host: microweb-webui
+  # subsets 的标签与 svc 对应的 deploy 的 metadata.labels.version 相匹配
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+  - name: v2
+    labels:
+      version: v2
+---
+# 用于配置流量的 VirtualService
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: webui-traffic-ctrl
+  namespace: default
+spec:
+  hosts:
+  - microweb-webui
+  http:
+  - route:
+    - destination:
+        # 注意这里需要对应 svc 的配置信息中的 metadata.name
+        host: microweb-webui-svc
+        subset: v1
+      weight: 0
+    - destination:
+        host: microweb-webui-svc
+        subset: v2
+      weight: 100
+---
